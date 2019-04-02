@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title><![CDATA[MaskField检测选项”]]></title>
+    <title><![CDATA[MaskField检测选项]]></title>
     <url>%2F2019%2F04%2F02%2FMaskField%E6%A3%80%E6%B5%8B%E9%80%89%E9%A1%B9%2F</url>
     <content type="text"><![CDATA[今天在编写工具时发现了一个有趣的Unity方法叫MaskField.但是在查看原文档的时候发现没有如何判断自己选了哪几个选项的方法，所以自己通过试验写了个判定的方法。 MaskField12345678910111213141516171819202122232425262728293031using UnityEngine;using UnityEditor;public class MaskFieldExample : EditorWindow&#123; static int flags = 0; static string[] options = new string[] &#123;&quot;CanJump&quot;, &quot;CanShoot&quot;, &quot;CanSwim&quot;&#125;; [MenuItem(&quot;Examples/Mask Field usage&quot;)] static void Init() &#123; MaskFieldExample window = (MaskFieldExample)GetWindow(typeof(MaskFieldExample)); window.Show(); &#125; void OnGUI() &#123; flags = EditorGUILayout.MaskField(&quot;Player Flags&quot;, flags, options); if (GUILayout.Button(&quot;Log options&quot;)) &#123; for (int i = 0; i &lt; options.Length; i++) &#123; if ((flags &amp; 1 &lt;&lt; i) != 0) &#123; Debug.Log(options[i]); &#125; &#125; &#125; &#125;&#125;]]></content>
       <categories>

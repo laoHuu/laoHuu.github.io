@@ -111,14 +111,14 @@
   <meta name="description" content="今天在编写工具时发现了一个有趣的Unity方法叫MaskField.但是在查看原文档的时候发现没有如何判断自己选了哪几个选项的方法，所以自己通过试验写了个判定的方法。">
 <meta name="keywords" content="Unity,C#">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MaskField检测选项”">
+<meta property="og:title" content="MaskField检测选项">
 <meta property="og:url" content="http://yoursite.com/2019/04/02/MaskField检测选项/index.html">
 <meta property="og:site_name" content="LaoHu&#39;s Blog">
 <meta property="og:description" content="今天在编写工具时发现了一个有趣的Unity方法叫MaskField.但是在查看原文档的时候发现没有如何判断自己选了哪几个选项的方法，所以自己通过试验写了个判定的方法。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-04-02T07:47:40.680Z">
+<meta property="og:updated_time" content="2019-04-02T07:50:05.490Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MaskField检测选项”">
+<meta name="twitter:title" content="MaskField检测选项">
 <meta name="twitter:description" content="今天在编写工具时发现了一个有趣的Unity方法叫MaskField.但是在查看原文档的时候发现没有如何判断自己选了哪几个选项的方法，所以自己通过试验写了个判定的方法。">
 
 
@@ -136,7 +136,7 @@
   };
 </script>
 
-  <title>MaskField检测选项” | LaoHu's Blog</title>
+  <title>MaskField检测选项 | LaoHu's Blog</title>
   
 
 
@@ -355,7 +355,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">MaskField检测选项”
+          <h1 class="post-title" itemprop="name headline">MaskField检测选项
               
             
           </h1>
@@ -380,7 +380,7 @@
                 
               
 
-              <time title="创建时间：2019-04-02 15:41:31 / 修改时间：15:47:40" itemprop="dateCreated datePublished" datetime="2019-04-02T15:41:31+08:00">2019-04-02</time>
+              <time title="创建时间：2019-04-02 15:41:31 / 修改时间：15:50:05" itemprop="dateCreated datePublished" datetime="2019-04-02T15:41:31+08:00">2019-04-02</time>
             
 
             
@@ -428,7 +428,7 @@
 
           
           
-             <span id="/2019/04/02/MaskField检测选项/" class="leancloud_visitors" data-flag-title="MaskField检测选项”">
+             <span id="/2019/04/02/MaskField检测选项/" class="leancloud_visitors" data-flag-title="MaskField检测选项">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -859,7 +859,7 @@
       var disqus_config = function () {
         this.page.url = 'http://yoursite.com/2019/04/02/MaskField检测选项/';
         this.page.identifier = '2019/04/02/MaskField检测选项/';
-        this.page.title = 'MaskField检测选项”';
+        this.page.title = 'MaskField检测选项';
         };
       function loadComments () {
         var d = document, s = d.createElement('script');
@@ -1233,43 +1233,42 @@
   
   <script>
     
-    function showTime(Counter) {
-      var entries = [];
+    function addCount(Counter) {
       var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
 
-      $visitors.each(function () {
-        entries.push( $(this).attr("id").trim() );
-      });
-
-      Counter('get', '/classes/Counter', { where: JSON.stringify({ url: { "$in": entries } }) })
+      Counter('get', '/classes/Counter', { where: JSON.stringify({ url }) })
         .done(function ({ results }) {
-          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
-
-          if (results.length === 0) {
-            $visitors.find(COUNT_CONTAINER_REF).text(0);
-            return;
-          }
-
-          for (var i = 0; i < results.length; i++) {
-            var item = results[i];
-            var url = item.url;
-            var time = item.time;
-            var element = document.getElementById(url);
-
-            $(element).find(COUNT_CONTAINER_REF).text(time);
-          }
-          for(var i = 0; i < entries.length; i++) {
-            var url = entries[i];
-            var element = document.getElementById(url);
-            var countSpan = $(element).find(COUNT_CONTAINER_REF);
-            if( countSpan.text() == '') {
-              countSpan.text(0);
-            }
+          if (results.length > 0) {
+            var counter = results[0];
+            
+            Counter('put', `/classes/Counter/${counter.objectId}`, JSON.stringify({ time: { "__op":"Increment", "amount":1 } }))
+            
+            .done(function () {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(counter.time + 1);
+            })
+            
+            .fail(function ({ responseJSON }) {
+                console.log('Failed to save Visitor num, with error message: ' + responseJSON.error);
+            })
+          } else {
+            
+              Counter('post', '/classes/Counter', JSON.stringify({ title: title, url: url, time: 1}))
+                .done(function () {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(1);
+                })
+                .fail(function () {
+                  console.log('Failed to create');
+                });
+            
           }
         })
-        .fail(function ({ responseJSON }) {
-          console.log("LeanCloud Counter Error: " + responseJSON.code + " " + responseJSON.error);
-        });
+      .fail(function ({ responseJSON }) {
+        console.log('LeanCloud Counter Error:' + responseJSON.code + " " + responseJSON.error);
+      });
     }
     
 
@@ -1289,9 +1288,7 @@
             });
           };
           
-          if ($('.post-title-link').length >= 1) {
-            showTime(Counter);
-          }
+          addCount(Counter);
           
         })
     });
