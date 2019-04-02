@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[MaskField检测选项”]]></title>
+    <url>%2F2019%2F04%2F02%2FMaskField%E6%A3%80%E6%B5%8B%E9%80%89%E9%A1%B9%2F</url>
+    <content type="text"><![CDATA[今天在编写工具时发现了一个有趣的Unity方法叫MaskField.但是在查看原文档的时候发现没有如何判断自己选了哪几个选项的方法，所以自己通过试验写了个判定的方法。 MaskField12345678910111213141516171819202122232425262728293031using UnityEngine;using UnityEditor;public class MaskFieldExample : EditorWindow&#123; static int flags = 0; static string[] options = new string[] &#123;&quot;CanJump&quot;, &quot;CanShoot&quot;, &quot;CanSwim&quot;&#125;; [MenuItem(&quot;Examples/Mask Field usage&quot;)] static void Init() &#123; MaskFieldExample window = (MaskFieldExample)GetWindow(typeof(MaskFieldExample)); window.Show(); &#125; void OnGUI() &#123; flags = EditorGUILayout.MaskField(&quot;Player Flags&quot;, flags, options); if (GUILayout.Button(&quot;Log options&quot;)) &#123; for (int i = 0; i &lt; options.Length; i++) &#123; if ((flags &amp; 1 &lt;&lt; i) != 0) &#123; Debug.Log(options[i]); &#125; &#125; &#125; &#125;&#125;]]></content>
+      <categories>
+        <category>Unity</category>
+      </categories>
+      <tags>
+        <tag>Unity</tag>
+        <tag>C#</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Unity世界坐标和本地坐标的转换]]></title>
     <url>%2F2019%2F03%2F14%2FUnity%E4%B8%96%E7%95%8C%E5%9D%90%E6%A0%87%E5%92%8C%E6%9C%AC%E5%9C%B0%E5%9D%90%E6%A0%87%E7%9A%84%E8%BD%AC%E6%8D%A2%2F</url>
     <content type="text"><![CDATA[游戏开发过程中，我们经常需要用到本地坐标和世界坐标的转换，尤其是配置位置偏移的时候，例如你希望在某个怪物的左前方放置特效，则需要在怪物的坐标系中做转换。 首先，世界坐标是指物体在场景中的坐标，当某个物体没有父物体时，它的position即为世界坐标的position，rotation同理；本地坐标是物体相对于它的父物体的坐标而言（ 父物体又套父物体的我还没有研究），这个相对坐标是以父物体本身为坐标轴进行计算的，与世界坐标没有必然联系。而对于没有父物体的物体，可以认为不存在本地坐标这种说法。另外有一点需要注意：当某个物体有父物体时，它的inspector栏transform中的position实际是localposition，即本地坐标。 在Unity中提供了很多原生的方法来做坐标转换，所以我们可以直接调用它们的方法来达到我们的目的，所以本文主要为了代码的简化而编写。 Unity原生方法转换 TransformPoint 偏移法TransformPoint 将坐标从本地坐标转到世界坐标,worldPos3为核心用法，将当前本地坐标系中的偏移转到世界坐标系中。 12345678910public Transform myParent; //该物体的父元素// Start is called before the first frame updatevoid Start()&#123; var localPos = transform.localPosition; //本地坐标 var worldPos = transform.position; //transform.position获取到的是世界坐标 var worldPos2 = transform.TransformPoint(Vector3.zero); var worldPos3 = myParent.transform.TransformPoint(localPos); Debug.Log(&quot;localPos:&quot; +localPos+&quot;worldPos:&quot;+worldPos+&quot;worldPos2:&quot;+worldPos2+&quot;worldPos3:&quot;+worldPos3);&#125; 偏移法通过使用四元数乘于偏移的向量来获得旋转后的偏移向量。 1234567public Transform myParent; //该物体的父元素// Start is called before the first frame updatevoid Start()&#123; var localPos = transform.localPosition; //本地坐标 var worldPos4 = myParent.transform.position + myParent.transform.rotation * localPos;&#125;]]></content>
