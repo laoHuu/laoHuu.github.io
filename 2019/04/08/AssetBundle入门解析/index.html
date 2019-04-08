@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="一个开头快速功能迭代开发的游戏，直到中后期才萌生热更新的需求，而在Unity里做资源热更（AssetBundle）和代码热更（Lua）是一个不小的工作，需要耗费相当多的精力。怎么办？。 相信大家对于游戏的热更新都有了一定的概念，但是AssetBundle究竟是什么东西？和Resource的加载方式有什么不一样呢？">
+<meta name="keywords" content="Unity,C#,AssetBundle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AssetBundle入门解析">
+<meta property="og:url" content="http://yoursite.com/2019/04/08/AssetBundle入门解析/index.html">
+<meta property="og:site_name" content="LaoHu&#39;s Blog">
+<meta property="og:description" content="一个开头快速功能迭代开发的游戏，直到中后期才萌生热更新的需求，而在Unity里做资源热更（AssetBundle）和代码热更（Lua）是一个不小的工作，需要耗费相当多的精力。怎么办？。 相信大家对于游戏的热更新都有了一定的概念，但是AssetBundle究竟是什么东西？和Resource的加载方式有什么不一样呢？">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2019/04/08/AssetBundle入门解析/20180929111443682.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/08/AssetBundle入门解析/20190408195748.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/08/AssetBundle入门解析/20190408200924.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/08/AssetBundle入门解析/20190408202939.png">
+<meta property="og:updated_time" content="2019-04-08T12:56:42.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AssetBundle入门解析">
+<meta name="twitter:description" content="一个开头快速功能迭代开发的游戏，直到中后期才萌生热更新的需求，而在Unity里做资源热更（AssetBundle）和代码热更（Lua）是一个不小的工作，需要耗费相当多的精力。怎么办？。 相信大家对于游戏的热更新都有了一定的概念，但是AssetBundle究竟是什么东西？和Resource的加载方式有什么不一样呢？">
+<meta name="twitter:image" content="http://yoursite.com/2019/04/08/AssetBundle入门解析/20180929111443682.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/08/AssetBundle入门解析/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>AssetBundle入门解析 | LaoHu's Blog</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e3fca4e975f1459a1fd28d3dbf885bbc";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LaoHu's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/08/AssetBundle入门解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Hu">
+      <meta itemprop="description" content="以 梦 喂 马，驰 骋 岁 月">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LaoHu's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">AssetBundle入门解析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-08 19:39:01 / 修改时间：20:56:42" itemprop="dateCreated datePublished" datetime="2019-04-08T19:39:01+08:00">2019-04-08</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Unity/" itemprop="url" rel="index"><span itemprop="name">Unity</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/04/08/AssetBundle入门解析/#comments" itemprop="discussionUrl">
+                
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/04/08/AssetBundle入门解析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2019/04/08/AssetBundle入门解析/" class="leancloud_visitors" data-flag-title="AssetBundle入门解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数：</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>一个开头快速功能迭代开发的游戏，直到中后期才萌生热更新的需求，而在Unity里做资源热更（AssetBundle）和代码热更（Lua）是一个不小的工作，需要耗费相当多的精力。<br>怎么办？。</p>
+<p>相信大家对于游戏的热更新都有了一定的概念，但是AssetBundle究竟是什么东西？和Resource的加载方式有什么不一样呢？</p>
+<a id="more"></a>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>AssetBundles是Unity编辑器中在编辑过程中创建的一些文件，这些文件可以在项目运行环境中使用。AssetBundles可以包含的资源文件比如模型，材质，贴图和场景等等，注意：AssetBundles不能包含脚本!</p>
+<p>具体来说，一个AssetBundle就是把资源或者场景以某种方式紧密集合在一起的一个文件。这个AssetBundle文件可以被单独加载到unity应用程序中。这允许模型、贴图、音效设置很大的场景这些资源进行流式加载或者异步加载。当然AssetBundle文件也可以本地缓存这样能够在程序启动的时候立马被加载出来。但AssetBundle技术主要目的就是需要的时候从远程服务器下载需要的资源。AssetBundle可以包含任何unity可识别的资源文件，甚至包括二进制文件。但就是不能包含脚本文件。</p>
+<p>在Resource模式中，开发者是几乎完全不用操心他们的资源管理的技术细节。直接使用编辑器进行资源编辑，用完以后开发完以后直接打包最终程序就可以了。而Asset Bundle模式则需要自己进行资源的打包加载管理。在AssetBundle模式和Resource相比较之下，这个模式看上去就像后来迭代版本的时候加出来的一个功能——基于原有Resource模式的不足，提供一个对资源方式更自由控制的方式。</p>
+<p><img src="20180929111443682.png" alt=""></p>
+<p>AssetBundle允许从本地或者远程服务器加载Assets资源，利用AssetBundle技术，Assets资源可以放在远程服务器上，这种技术增加了项目灵活性并且减少项目初始包的大小。</p>
+<p>本文介绍AssetBundles并且讨论一步一步的介绍怎么样使用它，怎样将资源打包到AssetBundle中，如何通过AssetBundle来加载资源到游戏中。</p>
+<h1 id="AssetBundle资源打包"><a href="#AssetBundle资源打包" class="headerlink" title="AssetBundle资源打包"></a>AssetBundle资源打包</h1><h2 id="创建工程和资源"><a href="#创建工程和资源" class="headerlink" title="创建工程和资源"></a>创建工程和资源</h2><p>首先我们创建一个新工程并在里面创建出一个Material和Prefab资源，让Prefab资源引用Material。<br>整个项目的结构如图：</p>
+<p><img src="20190408195748.png" alt=""></p>
+<h2 id="编写脚本"><a href="#编写脚本" class="headerlink" title="编写脚本"></a>编写脚本</h2><p>在Unity中打AssetBundle包很简单，只需要调用 BuildPipeline.BuildAssetBundles 方法就好了，但是要为想要导出的资源设置好 assetBundleName ，如果该资源没有被设置 assetBundleName，而且没有被设置了 assetBundleName 的资源所引用，那么Unity就不会打包该资源。那么如何在项目中设置 assetBundleName 呢？</p>
+<p>首先在Project目录中选中想要导出的资源，在Inspector的最底下有个展示框，如果没有的话点住图中的label往上拉就可以看见了，如图中的前一格就是我们的 assetBundleName ，后面一格是我们的Asset Bundle Variant，目前不做介绍，先不设置，我们按图中的设置把Material和Prefab都设置assetBundleName为test。</p>
+<p><img src="20190408200924.png" alt=""></p>
+<p>BuildPipeline.BuildAssetBundles 有两种重载，我将会在代码中介绍他们的区别。<br>创建BuildAssetBundlesExample，代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">// Create an AssetBundle for Windows.</span><br><span class="line">using UnityEngine;</span><br><span class="line">using UnityEditor;</span><br><span class="line">using System.IO;</span><br><span class="line"></span><br><span class="line">#if UNITY_EDITOR //若脚本文件不在Editor目录下，则需要判断，否则会报错</span><br><span class="line">public class BuildAssetBundlesExample : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">    [MenuItem(&quot;Example/Build Asset Bundle&quot;)]</span><br><span class="line">    static void BuildABs()</span><br><span class="line">    &#123;</span><br><span class="line">        var path = &quot;Assets/ABs&quot;;</span><br><span class="line">        Debug.Log(&quot;启动所有的打包&quot;); </span><br><span class="line">        //简易打包法，将当前项目中所有设置了assetBundleName 的或者被引用的资源都打包到对应路径。</span><br><span class="line">        // BuildTarget用来控制对应的平台，每个平台的assetbundle不能通用，所以每个平台的包都要重新打，这边为了方便在电脑上测试我们设置成StandaloneWindows。</span><br><span class="line">        //BuildAssetBundleOptions控制压缩，主要是三种，None默认使用LZMA</span><br><span class="line">        //1.LZMA : 压缩厉害，但是每次访问都要全部解压，比如我只需要访问该assetbundle的某个prefab，但是却需要等整个assetbundle的资源解压完毕，访问速度慢。</span><br><span class="line">        //2.LZ4 ： 压缩比LZMA差一点，但是只需要解压我们需要访问的资源，访问速度比LZMA快。</span><br><span class="line">        //3. 不压缩。</span><br><span class="line">        // Put the bundles in a folder called &quot;ABs&quot; within the Assets folder.</span><br><span class="line">        if (!Directory.Exists(path))</span><br><span class="line">        &#123;</span><br><span class="line">            Directory.CreateDirectory(path);</span><br><span class="line">        &#125;</span><br><span class="line">        BuildPipeline.BuildAssetBundles(path, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    [MenuItem(&quot;Example/Build Asset Bundles Using BuildMap&quot;)]</span><br><span class="line">    static void BuildMapABs()</span><br><span class="line">    &#123;</span><br><span class="line">        //像第一种，我们必须要给每个资源精细设置assetBundleName，然而在整个项目很大的情况下，你肯定希望用脚本来控制这一些资源，这时候就可以使用第二种重载的方式</span><br><span class="line">        // Create the array of bundle build details.</span><br><span class="line">        AssetBundleBuild[] buildMap = new AssetBundleBuild[2];</span><br><span class="line"></span><br><span class="line">        buildMap[0].assetBundleName = &quot;prefabbundle&quot;;</span><br><span class="line"></span><br><span class="line">        string[] prefabAssets = new string[2];</span><br><span class="line">        prefabAssets[0] = &quot;Assets/Prefabs/Cube.prefab&quot;;</span><br><span class="line">        buildMap[0].assetNames = prefabAssets;</span><br><span class="line"></span><br><span class="line">        buildMap[1].assetBundleName = &quot;materialbundle&quot;;</span><br><span class="line"></span><br><span class="line">        string[] materialAssets = new string[1];</span><br><span class="line">        materialAssets[0] = &quot;Assets/Materials/New Material.mat&quot;;</span><br><span class="line">        buildMap[1].assetNames = materialAssets;</span><br><span class="line"></span><br><span class="line">        var path = &quot;Assets/ABsBuildMap&quot;;</span><br><span class="line">        // Put the bundles in a folder called &quot;ABs&quot; within the Assets folder.</span><br><span class="line">        if (!Directory.Exists(path))</span><br><span class="line">        &#123;</span><br><span class="line">            Directory.CreateDirectory(path);</span><br><span class="line">        &#125;</span><br><span class="line">        BuildPipeline.BuildAssetBundles(path, buildMap, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+<p>当你创建了这个脚本后，你就可以通过项目中的Example下的选项来使用两种方法导出项目的资源了。</p>
+<h2 id="导出的资源分析"><a href="#导出的资源分析" class="headerlink" title="导出的资源分析"></a>导出的资源分析</h2><p>我们查看下第一种方式打包出来的assetbundle的资源。可以看到我们在Assets/ABs下有了四个文件。</p>
+<p><img src="20190408202939.png" alt=""></p>
+<p>我们可以注意到目录下有两个和文件夹名字一样的文件，打开ABs.manifest查看下信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// ABs.manifest</span><br><span class="line">ManifestFileVersion: 0</span><br><span class="line">CRC: 3628773453</span><br><span class="line">AssetBundleManifest:</span><br><span class="line">  AssetBundleInfos:</span><br><span class="line">    Info_0:</span><br><span class="line">      Name: test</span><br><span class="line">      Dependencies: &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>该文件为整个目录下的所有assetbundle的记录，它记录了每个assetbundle间的依赖情况和整个文件夹下的所有的assetbundle的信息，我们后面可以通过它来查找所需要加载的依赖。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">// test.manifest</span><br><span class="line">ManifestFileVersion: 0</span><br><span class="line">CRC: 1635728007</span><br><span class="line">Hashes:</span><br><span class="line">  AssetFileHash:</span><br><span class="line">    serializedVersion: 2</span><br><span class="line">    Hash: 48e66a94b791e3c542d971998c32fe2d</span><br><span class="line">  TypeTreeHash:</span><br><span class="line">    serializedVersion: 2</span><br><span class="line">    Hash: ea3f786f3814b1ad9ef2ef747825eec5</span><br><span class="line">HashAppended: 0</span><br><span class="line">ClassTypes:</span><br><span class="line">- Class: 1</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 4</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 21</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 23</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 33</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 43</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 48</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">- Class: 65</span><br><span class="line">  Script: &#123;instanceID: 0&#125;</span><br><span class="line">Assets:</span><br><span class="line">- Assets/Prefabs/Cube.prefab</span><br><span class="line">- Assets/Materials/New Material.mat</span><br><span class="line">Dependencies: []</span><br></pre></td></tr></table></figure>
+<p>test.manifest下记录了该assetbundle下的所有asset和该assetbundle的依赖情况</p>
+<h2 id="加载资源"><a href="#加载资源" class="headerlink" title="加载资源"></a>加载资源</h2><h3 id="资源都在一个-assetbundle"><a href="#资源都在一个-assetbundle" class="headerlink" title="资源都在一个 assetbundle"></a>资源都在一个 assetbundle</h3><p>比如第一种打包情况，我们将prefab和它所依赖的material都打包到test这个AssetBundle中，那么我们加载的时候就只需要加载这个assetbundle就好了，加载方式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using System.IO;</span><br><span class="line">using UnityEngine;</span><br><span class="line">using UnityEngine.Networking;</span><br><span class="line">public class LoadAssetBundle : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    // Start is called before the first frame update</span><br><span class="line">    void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        //从test包中加载</span><br><span class="line">        AssetBundle prefabAssetBundle = AssetBundle.LoadFromFile(Path.Combine(&quot;Assets/ABs&quot;, &quot;test&quot;));</span><br><span class="line">        if (prefabAssetBundle == null)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Failed to load AssetBundle!&quot;);</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        var prefab = prefabAssetBundle.LoadAsset&lt;GameObject&gt;(&quot;Cube&quot;);</span><br><span class="line">        Instantiate(prefab);</span><br><span class="line"></span><br><span class="line">        prefabAssetBundle.Unload(false); //释放掉assetbundle，false表示释放掉prefabAssetBundle但是不回收场景里面的对应的资源，那么留在场景里的资源就要自己手动释放。true表示释放掉prefabAssetBundle并回收场景里面的对应的资源，一般在切换场景之类的时候使用，要小心使用。</span><br><span class="line">    ｝</span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+<h3 id="资源都不在同一个-assetbundle"><a href="#资源都不在同一个-assetbundle" class="headerlink" title="资源都不在同一个 assetbundle"></a>资源都不在同一个 assetbundle</h3><p>第二种打包情况中我们把prefab分到了prefabbundle这个包中，然后它所引用的material则分到了materialbundle包中，所以我们加载的时候需要加载两个包。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using System.IO;</span><br><span class="line">using UnityEngine;</span><br><span class="line">using UnityEngine.Networking;</span><br><span class="line">public class LoadAssetBundle : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    // Start is called before the first frame update</span><br><span class="line">    void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        //当material和prefab分开在不同的包中加载</span><br><span class="line">        //如果不加载materialbundle，实例化出来的prefab会丢失材质</span><br><span class="line">        var matAssetBundle = AssetBundle.LoadFromFile(Path.Combine(&quot;Assets/ABsBuildMap&quot;, &quot;materialbundle&quot;));</span><br><span class="line">        var prefabAssetBundle = AssetBundle.LoadFromFile(Path.Combine(&quot;Assets/ABsBuildMap&quot;, &quot;prefabbundle&quot;));</span><br><span class="line">        if (prefabAssetBundle == null)</span><br><span class="line">        &#123;</span><br><span class="line">           Debug.Log(&quot;Failed to load prefabAssetBundle!&quot;);</span><br><span class="line">           return;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (matAssetBundle == null)</span><br><span class="line">        &#123;</span><br><span class="line">           Debug.Log(&quot;Failed to load matAssetBundle!&quot;);</span><br><span class="line">           return;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        var prefab2 = prefabAssetBundle.LoadAsset&lt;GameObject&gt;(&quot;Cube&quot;);</span><br><span class="line">        Instantiate(prefab2);</span><br><span class="line"></span><br><span class="line">        prefabAssetBundle.Unload(false);</span><br><span class="line">        matAssetBundle.Unload(false);</span><br><span class="line">    ｝</span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+<p>我们也可以通过包的主文件来动态查询我们的依赖包的包名，并进行加载，代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using System.IO;</span><br><span class="line">using UnityEngine;</span><br><span class="line">using UnityEngine.Networking;</span><br><span class="line">public class LoadAssetBundle : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    // Start is called before the first frame update</span><br><span class="line">    void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        //当material和prefab分开在不同的包中加载,通过包查找依赖</span><br><span class="line">        //加载主要的AssetBundleManifest</span><br><span class="line">        AssetBundle mainAssetBundle = AssetBundle.LoadFromFile(Path.Combine(&quot;Assets/ABsBuildMap&quot;, &quot;ABsBuildMap&quot;));</span><br><span class="line">        AssetBundleManifest manifest = mainAssetBundle.LoadAsset&lt;AssetBundleManifest&gt;(&quot;AssetBundleManifest&quot;);</span><br><span class="line"></span><br><span class="line">        var prefabAssetBundle = AssetBundle.LoadFromFile(Path.Combine(&quot;Assets/ABsBuildMap&quot;, &quot;prefabbundle&quot;));</span><br><span class="line">        //foreach (var name in manifest.GetAllAssetBundles()) //遍历所有的AssetBundle的名字</span><br><span class="line">        //&#123;</span><br><span class="line">        //    print(name);</span><br><span class="line">        //&#125;</span><br><span class="line">        var dependsAssetBundle = new List&lt;AssetBundle&gt;(manifest.GetAllDependencies(&quot;prefabbundle&quot;).Length);</span><br><span class="line">        foreach (var name in manifest.GetAllDependencies(&quot;prefabbundle&quot;)) //遍历prefabbundle包所有的依赖的AssetBundle的名字</span><br><span class="line">        &#123;</span><br><span class="line">           dependsAssetBundle.Add(AssetBundle.LoadFromFile(Path.Combine(&quot;Assets/ABsBuildMap&quot;, name))); //加载所有的依赖包</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        var prefab2 = prefabAssetBundle.LoadAsset&lt;GameObject&gt;(&quot;Cube&quot;);</span><br><span class="line">        Instantiate(prefab2);</span><br><span class="line">    ｝</span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+<h3 id="加载服务器上的assetbundle"><a href="#加载服务器上的assetbundle" class="headerlink" title="加载服务器上的assetbundle"></a>加载服务器上的assetbundle</h3><p>热更新中我们一般会把assetbundle部署到服务器上，Unity为我们封装了UnityWebRequest来加载。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using System.IO;</span><br><span class="line">using UnityEngine;</span><br><span class="line">using UnityEngine.Networking;</span><br><span class="line">public class LoadAssetBundle : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    // Start is called before the first frame update</span><br><span class="line">    IEnumerator Start()</span><br><span class="line">    &#123;</span><br><span class="line">        //---------</span><br><span class="line">        string url = @&quot;file:///E:\UnityProject\AssetBundleTest\Assets\ABs\test&quot;;  //假设为服务端地址</span><br><span class="line">        UnityWebRequest uwr = UnityWebRequestAssetBundle.GetAssetBundle(url);</span><br><span class="line">        yield return uwr.SendWebRequest();</span><br><span class="line">        //Get an asset from the bundle and instantiate it.</span><br><span class="line">        AssetBundle myLoadedAssetBundle = DownloadHandlerAssetBundle.GetContent(uwr);</span><br><span class="line"></span><br><span class="line">        var prefab = myLoadedAssetBundle.LoadAsset&lt;GameObject&gt;(&quot;Assets/Prefabs/Cube.prefab&quot;);</span><br><span class="line">        //var prefab = myLoadedAssetBundle.LoadAsset&lt;GameObject&gt;(&quot;Cube&quot;);</span><br><span class="line">        Instantiate(prefab);</span><br><span class="line"></span><br><span class="line">        myLoadedAssetBundle.Unload(false);</span><br><span class="line">    ｝</span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+<p>以上就是主要的入门知识了，大家可以发现整个AssetBundle目前的方法其实是不全的，想要做到热更新的话我们还需要版本对比，然后我们最好能够手写一个资源回收方法来控制AssetBundle的Unload操作，这些我会放在下一章开始讲，当然Unity本身也有很多其它的可以异步的加载方式，比如LoadFromMemoryAsync之类的，大体都一样，可以自己去查看官方文档。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Unity/" rel="tag"># Unity</a>
+          
+            <a href="/tags/C/" rel="tag"># C#</a>
+          
+            <a href="/tags/AssetBundle/" rel="tag"># AssetBundle</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/02/MaskField检测选项/" rel="next" title="MaskField检测选项">
+                <i class="fa fa-chevron-left"></i> MaskField检测选项
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="Lao Hu" />
+            
+              <p class="site-author-name" itemprop="name">Lao Hu</p>
+              <p class="site-description motion-element" itemprop="description">以 梦 喂 马，驰 骋 岁 月</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/laohuu" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/laohuu/activities" target="_blank" title="知乎"><i class="fa fa-fw fa-globe"></i>知乎</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AssetBundle资源打包"><span class="nav-number">2.</span> <span class="nav-text">AssetBundle资源打包</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建工程和资源"><span class="nav-number">2.1.</span> <span class="nav-text">创建工程和资源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编写脚本"><span class="nav-number">2.2.</span> <span class="nav-text">编写脚本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导出的资源分析"><span class="nav-number">2.3.</span> <span class="nav-text">导出的资源分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载资源"><span class="nav-number">2.4.</span> <span class="nav-text">加载资源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#资源都在一个-assetbundle"><span class="nav-number">2.4.1.</span> <span class="nav-text">资源都在一个 assetbundle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#资源都不在同一个-assetbundle"><span class="nav-number">2.4.2.</span> <span class="nav-text">资源都不在同一个 assetbundle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加载服务器上的assetbundle"><span class="nav-number">2.4.3.</span> <span class="nav-text">加载服务器上的assetbundle</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Hu</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Mist</a> v6.4.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://Lao Hu.disqus.com/count.js" async></script>
+  
+
+  
+    <script type="text/javascript">
+      var disqus_config = function () {
+        this.page.url = 'http://yoursite.com/2019/04/08/AssetBundle入门解析/';
+        this.page.identifier = '2019/04/08/AssetBundle入门解析/';
+        this.page.title = 'AssetBundle入门解析';
+        };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Lao Hu.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        $(function () {
+          var offsetTop = $('#comments').offset().top - $(window).height();
+          if (offsetTop <= 0) {
+            // load directly when there's no a scrollbar
+            loadComments();
+          } else {
+            $(window).on('scroll.disqus_scroll', function () {
+              // offsetTop may changes because of manually resizing browser window or lazy loading images.
+              var offsetTop = $('#comments').offset().top - $(window).height();
+              var scrollTop = $(window).scrollTop();
+
+              // pre-load comments a bit? (margin or anything else)
+              if (offsetTop - scrollTop < 60) {
+                $(window).off('.disqus_scroll');
+                loadComments();
+              }
+            });
+          }
+        });
+      
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script>
+    
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+
+      Counter('get', '/classes/Counter', { where: JSON.stringify({ url }) })
+        .done(function ({ results }) {
+          if (results.length > 0) {
+            var counter = results[0];
+            
+            Counter('put', `/classes/Counter/${counter.objectId}`, JSON.stringify({ time: { "__op":"Increment", "amount":1 } }))
+            
+            .done(function () {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(counter.time + 1);
+            })
+            
+            .fail(function ({ responseJSON }) {
+                console.log('Failed to save Visitor num, with error message: ' + responseJSON.error);
+            })
+          } else {
+            
+              Counter('post', '/classes/Counter', JSON.stringify({ title: title, url: url, time: 1}))
+                .done(function () {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(1);
+                })
+                .fail(function () {
+                  console.log('Failed to create');
+                });
+            
+          }
+        })
+      .fail(function ({ responseJSON }) {
+        console.log('LeanCloud Counter Error:' + responseJSON.code + " " + responseJSON.error);
+      });
+    }
+    
+
+    $(function() {
+      $.get('https://app-router.leancloud.cn/2/route?appId=' + "QCfaUjjWp1hBpRVXwBdPLsyQ-gzGzoHsz")
+        .done(function ({ api_server }) {
+          var Counter = function (method, url, data) {
+            return $.ajax({
+              method: method,
+              url: `https://${api_server}/1.1${url}`,
+              headers: {
+                'X-LC-Id': "QCfaUjjWp1hBpRVXwBdPLsyQ-gzGzoHsz",
+                'X-LC-Key': "W4lbrajEBQ6aXNM9Es9eI5Jr",
+                'Content-Type': 'application/json',
+              },
+              data: data,
+            });
+          };
+          
+          addCount(Counter);
+          
+        })
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
